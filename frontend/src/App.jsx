@@ -7,11 +7,13 @@ import {
 import { api } from './api';
 import ModuleItem from './RoadmapView';
 import Sidebar from './components/Sidebar';
+import LandingPage from './LandingPage';
 
 function App() {
   // === STATE ===
   const [user, setUser] = useState(localStorage.getItem('user_id'));
   const [view, setView] = useState('dashboard'); // 'dashboard', 'learning', 'settings', 'roadmap'
+  const [showAuth, setShowAuth] = useState(false); // Control auth screen visibility
   
   const [inputSkill, setInputSkill] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +30,6 @@ function App() {
   useEffect(() => {
     if (user && view === 'dashboard') {
       loadDashboard();
-      loadSettings();
     }
   }, [user, view]);
 
@@ -41,18 +42,6 @@ function App() {
       setMyGoals(res.data);
     } catch (err) {
       console.error("Failed to load dashboard", err);
-    }
-  };
-
-  const loadSettings = async () => {
-    try {
-      const res = await api.getUserSettings(user);
-      // If the user has a saved style, set it. Otherwise default to 'text'.
-      if (res.data.learning_style) {
-        setPrefStyle(res.data.learning_style);
-      }
-    } catch (err) {
-      console.error("Failed to load settings", err);
     }
   };
 
@@ -72,6 +61,7 @@ function App() {
       }
       localStorage.setItem('user_id', res.data.user_id);
       setUser(res.data.user_id);
+      setShowAuth(false);
     } catch (err) {
       alert("Auth Failed: " + (err.response?.data?.error || err.message));
     }
@@ -117,10 +107,21 @@ function App() {
   const handleLogout = () => {
     localStorage.clear();
     setUser(null);
+    setShowAuth(false);
   };
 
+  const handleGetStarted = () => {
+    setShowAuth(true);
+    setIsLoginMode(false); // Show signup by default
+  };
+
+  // === LANDING PAGE ===
+  if (!user && !showAuth) {
+    return <LandingPage onGetStarted={handleGetStarted} />;
+  }
+
   // === AUTH SCREEN ===
-  if (!user) {
+  if (!user && showAuth) {
     return (
       <div className="min-h-screen flex">
         {/* Brand Side */}
@@ -177,6 +178,15 @@ function App() {
           className="flex-1 flex items-center justify-center p-8 bg-gray-50"
         >
           <div className="w-full max-w-md">
+            {/* Back to Landing */}
+            <button
+              onClick={() => setShowAuth(false)}
+              className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to home
+            </button>
+
             {/* Mobile Logo */}
             <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
               <Target className="w-8 h-8 text-indigo-600" />
