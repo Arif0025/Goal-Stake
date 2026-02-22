@@ -1,22 +1,31 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Home, BookMarked, Settings, Target, Award, TrendingUp, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Home, BookMarked, Settings, Award, TrendingUp, LogOut, X, Menu } from 'lucide-react';
+import { GoalStakeLogo } from './GoalStakeLogo';
 
 const Sidebar = ({ view, setView, userStats, onLogout }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const navItems = [
     { id: 'dashboard', icon: Home, label: 'Dashboard' },
     { id: 'learning', icon: BookMarked, label: 'My Learning' },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];
 
-  return (
-    <div className="w-72 bg-white border-r border-gray-200 flex flex-col">
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  const handleNavClick = (itemId) => {
+    setView(itemId);
+    closeMobileMenu();
+  };
+
+  // Sidebar Content (shared between desktop and mobile)
+  const SidebarContent = () => (
+    <>
       {/* Logo & Brand */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
-            <Target className="w-6 h-6 text-white" strokeWidth={2.5} />
-          </div>
+          <GoalStakeLogo size={40} />
           <div>
             <h1 className="text-xl font-bold text-gray-900">Goal Stake</h1>
             <p className="text-xs text-gray-500">Learning Platform</p>
@@ -71,7 +80,7 @@ const Sidebar = ({ view, setView, userStats, onLogout }) => {
             return (
               <li key={item.id}>
                 <button
-                  onClick={() => setView(item.id)}
+                  onClick={() => handleNavClick(item.id)}
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200
                     ${isActive 
@@ -92,14 +101,83 @@ const Sidebar = ({ view, setView, userStats, onLogout }) => {
       {/* Logout Button */}
       <div className="p-4 border-t border-gray-200">
         <button
-          onClick={onLogout}
+          onClick={() => {
+            onLogout();
+            closeMobileMenu();
+          }}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium text-red-600 hover:bg-red-50 transition-all duration-200"
         >
           <LogOut className="w-5 h-5" />
           <span>Logout</span>
         </button>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile Header (Hamburger Menu) */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <GoalStakeLogo size={32} />
+            <h1 className="text-lg font-bold text-gray-900">Goal Stake</h1>
+          </div>
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <Menu className="w-6 h-6 text-gray-700" />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeMobileMenu}
+              className="lg:hidden fixed inset-0 bg-black/50 z-40"
+            />
+
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: -300 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="lg:hidden fixed top-0 left-0 bottom-0 w-72 bg-white z-50 flex flex-col shadow-2xl"
+            >
+              {/* Close Button */}
+              <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <GoalStakeLogo size={32} />
+                  <h1 className="text-lg font-bold text-gray-900">Menu</h1>
+                </div>
+                <button
+                  onClick={closeMobileMenu}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-700" />
+                </button>
+              </div>
+
+              <SidebarContent />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex lg:w-72 bg-white border-r border-gray-200 flex-col">
+        <SidebarContent />
+      </div>
+    </>
   );
 };
 

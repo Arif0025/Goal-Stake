@@ -97,7 +97,8 @@ const ModuleItem = ({ module, depth = 0 }) => {
       )}
 
       {/* Module Card */}
-      <div className="mb-4">
+      // In RoadmapView.jsx, update module card padding
+      <div className="p-3 sm:p-5 flex items-center justify-between">
         <motion.div
           whileHover={{ scale: 1.01 }}
           className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200"
